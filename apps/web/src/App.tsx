@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { EmptyState, Spinner } from '@nexus/ui';
 import { boot } from './runtime';
 import { toast } from './toast';
+import { connectGestureControl } from './gestureControl';
 import { Shell } from './components/Shell';
 
 type Boot = { status: 'loading' } | { status: 'ready' } | { status: 'failed' };
@@ -10,16 +11,18 @@ export function App() {
   const [state, setState] = useState<Boot>({ status: 'loading' });
   useEffect(() => {
     let live = true;
+    let stopGestures: (() => void) | null = null;
     boot().then(
       (r) => {
         if (!live) return;
         setState({ status: 'ready' });
+        stopGestures = connectGestureControl();
         if (r.recovered) toast('Saved data could not be read and was reset.', 'error', 6000);
         if (r.error) toast(r.error, 'error', 6000);
       },
       () => live && setState({ status: 'failed' }),
     );
-    return () => { live = false; };
+    return () => { live = false; stopGestures?.(); };
   }, []);
 
   if (state.status === 'loading') {

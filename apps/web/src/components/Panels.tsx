@@ -8,6 +8,7 @@ import { closeRoute } from '../router';
 import { allowEmbedding, openUrl, openUrlInNewTab, removeEmbedding } from '../actions';
 import { runCommand } from '../commands';
 import { toast } from '../toast';
+import { gestureUi, setGesturesPaused } from '../gestureControl';
 import { NEWTAB_URL } from '@nexus/shared';
 
 function Panel({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
@@ -170,10 +171,7 @@ export function SettingsPanel() {
       <EmbedSettings />
 
       <h3 className="section-title">Gesture control</h3>
-      <div className="row static disabled" aria-disabled="true">
-        <Icon name="eye" size={18} /><span className="row-main"><b>Eye, blink and hand control</b>
-          <small>Not available yet. It arrives in a later release and will always ask before using your camera.</small></span>
-      </div>
+      <HandGestureSettings />
 
       <h3 className="section-title">Your data</h3>
       <p className="note">Tabs, history, bookmarks and settings are stored only on this device. Nothing is sent to a server.</p>
@@ -182,6 +180,36 @@ export function SettingsPanel() {
       </div>
       <p className="note small">NEXUS Browser 0.2.0 · web browsing release</p>
     </Panel>
+  );
+}
+
+function HandGestureSettings() {
+  const { handGestures } = useStore(settings);
+  const ui = useStore(gestureUi);
+  const st = ui.status;
+  const msg = !handGestures ? 'Off. Your camera is not used.'
+    : st.state === 'starting' ? 'Starting the camera and loading hand tracking...'
+    : st.state === 'running' ? (ui.paused ? 'Paused. Gestures are ignored.' : 'On. Hold your phone steady and swipe your hand in front of the front camera: right for the next tab, left for the previous tab.')
+    : st.state === 'off' ? 'Starting...' : st.message;
+  return (
+    <>
+      <div className="seg" role="radiogroup" aria-label="Hand gestures">
+        <button role="radio" aria-checked={!handGestures} className={!handGestures ? 'on' : ''}
+          onClick={() => settings.dispatch({ handGestures: false })}>Off</button>
+        <button role="radio" aria-checked={handGestures} className={handGestures ? 'on' : ''}
+          onClick={() => settings.dispatch({ handGestures: true })}>Hand swipe</button>
+      </div>
+      <div className="row static">
+        <Icon name="eye" size={18} /><span className="row-main"><b>Swipe to change tabs</b><small>{msg}</small>
+          {ui.lastGesture && <small>Last gesture: {ui.lastGesture}</small>}</span>
+      </div>
+      {handGestures && st.state === 'running' && (
+        <div className="actions">
+          <button className="btn" onClick={() => setGesturesPaused(!ui.paused)}>{ui.paused ? 'Resume gestures' : 'Pause gestures (Esc)'}</button>
+        </div>
+      )}
+      <p className="note small">Runs only on this device. Camera video is never recorded or sent anywhere. The hand-tracking model is downloaded once from the internet.</p>
+    </>
   );
 }
 

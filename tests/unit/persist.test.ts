@@ -79,9 +79,9 @@ describe('browser persistence', () => {
 
 describe('settings', () => {
   it('sanitizes input', () => {
-    expect(sanitizeSettings(null)).toEqual({ searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [] });
-    expect(sanitizeSettings({ searchEngine: 'evil', homeUrl: 'javascript:alert(1)' })).toEqual({ searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [] });
-    expect(sanitizeSettings({ searchEngine: 'google', homeUrl: 'https://example.com/' })).toEqual({ searchEngine: 'google', homeUrl: 'https://example.com/', embedAllow: [] });
+    expect(sanitizeSettings(null)).toEqual({ searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [], handGestures: false });
+    expect(sanitizeSettings({ searchEngine: 'evil', homeUrl: 'javascript:alert(1)' })).toEqual({ searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [], handGestures: false });
+    expect(sanitizeSettings({ searchEngine: 'google', homeUrl: 'https://example.com/' })).toEqual({ searchEngine: 'google', homeUrl: 'https://example.com/', embedAllow: [], handGestures: false });
     expect(sanitizeSettings({ embedAllow: ['Example.com', 'example.com', 'javascript:1', 7, '*'] }).embedAllow).toEqual(['example.com']);
   });
   it('store applies patches, ignores invalid ones and persists', async () => {
@@ -90,7 +90,7 @@ describe('settings', () => {
     persistSettings(store, adapter);
     store.dispatch({ searchEngine: 'brave' });
     store.dispatch({ homeUrl: 'file:///x' });
-    expect(store.getState()).toEqual({ searchEngine: 'brave', homeUrl: '', embedAllow: [] });
+    expect(store.getState()).toEqual({ searchEngine: 'brave', homeUrl: '', embedAllow: [], handGestures: false });
     store.dispatch({ embedAllow: ['example.com'] });
     const same = store.getState();
     store.dispatch({ embedAllow: ['example.com'] });

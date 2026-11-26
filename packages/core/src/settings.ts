@@ -10,8 +10,10 @@ export interface Settings {
   homeUrl: string;
   /** Sites the person allowed to be shown inside the app (hosts, optionally host:port). Subdomains are included. */
   embedAllow: string[];
+  /** Hand-swipe tab switching through the camera. Off until the person turns it on. */
+  handGestures: boolean;
 }
-export const DEFAULT_SETTINGS: Settings = { searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [] };
+export const DEFAULT_SETTINGS: Settings = { searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [], handGestures: false };
 export const SETTINGS_KEY = 'nexus.settings.v1';
 
 export function sanitizeSettings(raw: unknown): Settings {
@@ -28,6 +30,7 @@ export function sanitizeSettings(raw: unknown): Settings {
     searchEngine: isSearchEngineId(r.searchEngine) ? r.searchEngine : DEFAULT_SETTINGS.searchEngine,
     homeUrl: home !== NEWTAB_URL && isNavigableUrl(home) ? home : '',
     embedAllow,
+    handGestures: r.handGestures === true,
   };
 }
 
@@ -36,7 +39,7 @@ const sameList = (a: string[], b: string[]) => a.length === b.length && a.every(
 export function createSettingsStore(initial: Settings = DEFAULT_SETTINGS): Store<Settings, Partial<Settings>> {
   return createStore<Settings, Partial<Settings>>(initial, (s, patch) => {
     const n = sanitizeSettings({ ...s, ...patch });
-    return n.searchEngine === s.searchEngine && n.homeUrl === s.homeUrl && sameList(n.embedAllow, s.embedAllow) ? s : n;
+    return n.searchEngine === s.searchEngine && n.homeUrl === s.homeUrl && sameList(n.embedAllow, s.embedAllow) && n.handGestures === s.handGestures ? s : n;
   });
 }
 
