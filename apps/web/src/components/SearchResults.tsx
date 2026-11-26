@@ -50,8 +50,8 @@ export function SearchResults({ engine, query }: { engine: SearchEngineId; query
 
   const link = (id: SearchEngineId) => SEARCH_ENGINES[id].template.replace('%s', encodeURIComponent(query));
   return (
-    <div className="scroll status-wrap" data-state="search">
-      <div className="status-card" style={{ maxWidth: 680 }}>
+    <div className="scroll" data-state="search" style={{ padding: 16 }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", display: "grid", gap: 12 }}>
         <h2 className="section-title">Search: {query}</h2>
         <p className="note">Search sites cannot be shown inside NEXUS. Open the full results in your browser:</p>
         <div className="actions">

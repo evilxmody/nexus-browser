@@ -162,9 +162,10 @@ export function Viewport() {
   const ctx = embedContext(s.embedAllow);
   const decide = (t: Tab) => decideEmbed(currentEntry(t).url, ctx);
 
-  const embeddable = state.tabs.filter((t) => live.includes(t.id) && currentEntry(t).url !== NEWTAB_URL && decide(t).embed);
-  const d = entry.url === NEWTAB_URL ? null : decide(tab);
+  const embeddable = state.tabs.filter((t) => live.includes(t.id) && currentEntry(t).url !== NEWTAB_URL && !parseSearchUrl(currentEntry(t).url) && decide(t).embed);
   const search = parseSearchUrl(entry.url);
+  // A search page is always shown by NEXUS itself, even if the person once pressed "Try anyway" for a search engine.
+  const d = entry.url === NEWTAB_URL ? null : search ? { embed: false as const, reason: 'known-blocked' as const, host: '' } : decide(tab);
   const offlineBlock = d?.embed && !online && !isLoopbackHost(hostOf(entry.url)) && frameFor(ps, tab.id, pageKey(tab, ps.reloads)).status !== 'verified';
 
   return (
@@ -192,6 +193,6 @@ export function useActiveStatus(): 'idle' | 'loading' | 'loaded' | 'verified' | 
   const tab = activeTab(state);
   const url = currentEntry(tab).url;
   if (url === NEWTAB_URL) return 'idle';
-  if (!decideEmbed(url, embedContext(s.embedAllow)).embed) return 'blocked';
+  if (parseSearchUrl(url) || !decideEmbed(url, embedContext(s.embedAllow)).embed) return 'blocked';
   return frameFor(ps, tab.id, pageKey(tab, ps.reloads)).status;
 }
