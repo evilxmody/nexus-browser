@@ -13,6 +13,7 @@ import { MenuSheet } from './MenuSheet';
 import { Viewport, useActiveStatus } from './PageView';
 import { BookmarksPanel, HistoryPanel, SettingsPanel, TabsPanel } from './Panels';
 import { Toasts } from './Toasts';
+import { GesturePreview } from './GesturePreview';
 
 function NavButtons({ withMenu, onMenu }: { withMenu?: boolean; onMenu: () => void }) {
   const state = useStore(browser);
@@ -77,6 +78,7 @@ export function Shell() {
       </nav>
       {menu && <MenuSheet onClose={() => setMenu(false)} />}
       <Toasts />
+      <GesturePreview />
     </div>
   );
 }

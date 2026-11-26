@@ -79,8 +79,8 @@ describe('browser persistence', () => {
 
 describe('settings', () => {
   it('sanitizes input', () => {
-    expect(sanitizeSettings(null)).toEqual({ searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [], handGestures: false });
-    expect(sanitizeSettings({ searchEngine: 'evil', homeUrl: 'javascript:alert(1)' })).toEqual({ searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [], handGestures: false });
+    expect(sanitizeSettings(null)).toEqual({ searchEngine: 'google', homeUrl: '', embedAllow: [], handGestures: false });
+    expect(sanitizeSettings({ searchEngine: 'evil', homeUrl: 'javascript:alert(1)' })).toEqual({ searchEngine: 'google', homeUrl: '', embedAllow: [], handGestures: false });
     expect(sanitizeSettings({ searchEngine: 'google', homeUrl: 'https://example.com/' })).toEqual({ searchEngine: 'google', homeUrl: 'https://example.com/', embedAllow: [], handGestures: false });
     expect(sanitizeSettings({ embedAllow: ['Example.com', 'example.com', 'javascript:1', 7, '*'] }).embedAllow).toEqual(['example.com']);
   });

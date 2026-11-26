@@ -27,6 +27,7 @@ export const TRACKING_ASSETS = {
 };
 
 export interface HandTrackerOptions { maxHands: number; targetFps: number }
+export interface TrackerStats { frames: number; handFrames: number; errors: number; lastError: string; delegate: string; videoSize: string }
 const DEFAULTS: HandTrackerOptions = { maxHands: 1, targetFps: 15 };
 
 export class HandTracker {
@@ -41,6 +42,11 @@ export class HandTracker {
   private lastRun = 0;
   private runId = 0;
   private readonly o: HandTrackerOptions;
+  /** Live counters for debugging: how many frames were analysed, how many contained a hand, errors. */
+  readonly stats: TrackerStats = { frames: 0, handFrames: 0, errors: 0, lastError: '', delegate: '', videoSize: '' };
+  /** Latest frame, so a debug preview can draw landmarks. */
+  lastFrame: HandFrame | null = null;
+  getVideo() { return this.video; }
 
   constructor(options: Partial<HandTrackerOptions> = {}) { this.o = { ...DEFAULTS, ...options }; }
 
@@ -53,6 +59,7 @@ export class HandTracker {
   async start(): Promise<void> {
     if (this.status.state === 'starting' || this.status.state === 'running') return;
     const id = ++this.runId;
+    Object.assign(this.stats, { frames: 0, handFrames: 0, errors: 0, lastError: '', delegate: '', videoSize: '' });
     if (!navigator.mediaDevices?.getUserMedia) {
       this.set({ state: 'unavailable', message: 'This browser or page cannot use the camera (it needs https or localhost).' });
       return;
@@ -80,7 +87,10 @@ export class HandTracker {
         runningMode: 'VIDEO', numHands: this.o.maxHands,
       });
       // Phones usually do better on the GPU; some cannot, so fall back to the CPU instead of failing.
-      const landmarker = await make('GPU').catch(() => make('CPU'));
+      const withTimeout = <T,>(p: Promise<T>) => Promise.race([p, new Promise<never>((_, rej) => setTimeout(() => rej(new Error('model load timeout')), 45_000))]);
+      let landmarker: HandLandmarker;
+      try { landmarker = await withTimeout(make('GPU')); this.stats.delegate = 'GPU'; }
+      catch { landmarker = await withTimeout(make('CPU')); this.stats.delegate = 'CPU'; }
       if (id !== this.runId) { landmarker.close(); return; }
       this.landmarker = landmarker;
       // The video element is never shown. It exists only so MediaPipe can read frames.
@@ -93,12 +103,14 @@ export class HandTracker {
       if (id !== this.runId) { video.remove(); return; }
       this.video = video;
       this.lastVideoTime = -1;
+      this.stats.videoSize = `${video.videoWidth}x${video.videoHeight}`;
       this.set({ state: 'running' });
       this.loop();
     } catch (e) {
       if (id !== this.runId) return;
       this.release();
-      this.set({ state: 'error', message: 'Hand tracking could not load. Check your internet connection (the model is downloaded once) and try again.' });
+      this.stats.lastError = e instanceof Error ? e.message : String(e);
+      this.set({ state: 'error', message: 'Hand tracking could not load. Check your internet connection (the model is downloaded once) and try again. Details: ' + this.stats.lastError });
       console.error('[nexus] hand tracker failed to start', e);
     }
   }
@@ -129,8 +141,13 @@ export class HandTracker {
       try {
         const r = lm.detectForVideo(v, now);
         const hands = r.landmarks.map((h) => h.map((p) => ({ x: p.x, y: p.y, z: p.z })));
-        this.frameListeners.forEach((l) => l({ t: now, hands }));
+        const frame = { t: now, hands };
+        this.lastFrame = frame;
+        this.stats.frames++;
+        if (hands.length) this.stats.handFrames++;
+        this.frameListeners.forEach((l) => l(frame));
       } catch (e) {
+        this.stats.errors++; this.stats.lastError = e instanceof Error ? e.message : String(e);
         console.error('[nexus] hand tracking frame failed', e);
       }
     }

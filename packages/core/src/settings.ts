@@ -13,7 +13,7 @@ export interface Settings {
   /** Hand-swipe tab switching through the camera. Off until the person turns it on. */
   handGestures: boolean;
 }
-export const DEFAULT_SETTINGS: Settings = { searchEngine: 'duckduckgo', homeUrl: '', embedAllow: [], handGestures: false };
+export const DEFAULT_SETTINGS: Settings = { searchEngine: 'google', homeUrl: '', embedAllow: [], handGestures: false };
 export const SETTINGS_KEY = 'nexus.settings.v1';
 
 export function sanitizeSettings(raw: unknown): Settings {

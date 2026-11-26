@@ -11,6 +11,7 @@ import { allowEmbedding, openUrlInNewTab, reloadActive } from '../actions';
 import { runCommand } from '../commands';
 import { toast } from '../toast';
 import { NewTabPage } from './Pages';
+import { SearchResults, parseSearchUrl } from './SearchResults';
 
 export const LOAD_TIMEOUT_MS = 20_000;
 const MAX_LIVE_FRAMES = 3;
@@ -163,12 +164,13 @@ export function Viewport() {
 
   const embeddable = state.tabs.filter((t) => live.includes(t.id) && currentEntry(t).url !== NEWTAB_URL && decide(t).embed);
   const d = entry.url === NEWTAB_URL ? null : decide(tab);
+  const search = parseSearchUrl(entry.url);
   const offlineBlock = d?.embed && !online && !isLoopbackHost(hostOf(entry.url)) && frameFor(ps, tab.id, pageKey(tab, ps.reloads)).status !== 'verified';
 
   return (
     <>
       {entry.url === NEWTAB_URL && <NewTabPage />}
-      {d && !d.embed && <Blocked url={entry.url} d={d} />}
+      {d && !d.embed && (search ? <SearchResults engine={search.engine} query={search.query} /> : <Blocked url={entry.url} d={d} />)}
       {offlineBlock && (
         <StatusCard state="offline" icon="warn" title="You are offline" text="Check your connection, then try again." url={entry.url} host={displayUrl(entry.url)}>
           <button className="btn" onClick={() => reloadActive()}><Icon name="reload" size={18} />Try again</button>

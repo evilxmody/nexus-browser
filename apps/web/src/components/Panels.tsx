@@ -205,6 +205,7 @@ function HandGestureSettings() {
       </div>
       {handGestures && st.state === 'running' && (
         <div className="actions">
+          <button className="btn" onClick={() => gestureUi.dispatch({ preview: !ui.preview })}>{ui.preview ? 'Hide camera preview' : 'Show camera preview'}</button>
           <button className="btn" onClick={() => setGesturesPaused(!ui.paused)}>{ui.paused ? 'Resume gestures' : 'Pause gestures (Esc)'}</button>
         </div>
       )}

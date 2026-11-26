@@ -22,14 +22,16 @@ export const NEXT_TAB_IMAGE_DIRECTION: 'left' | 'right' = 'left';
 /** Landmarks used for the palm center: wrist (0) and the four finger knuckles (5, 9, 13, 17). */
 const PALM = [0, 5, 9, 13, 17] as const;
 
-export interface GestureUiState { status: TrackerStatus; paused: boolean; lastGesture: string | null }
+export interface GestureUiState { status: TrackerStatus; paused: boolean; lastGesture: string | null; preview: boolean }
 type A = Partial<GestureUiState>;
 export const gestureUi = createStore<GestureUiState, A>(
-  { status: { state: 'off' }, paused: false, lastGesture: null },
+  { status: { state: 'off' }, paused: false, lastGesture: null, preview: true },
   (s, a) => ({ ...s, ...a }),
 );
 
 let tracker: HandTracker | null = null;
+/** For the debug preview. */
+export const getTracker = () => tracker;
 let unregister: (() => void) | null = null;
 
 const handSwipeSource: CommandSource = {
