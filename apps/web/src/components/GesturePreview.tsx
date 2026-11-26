@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../hooks';
 import { settings } from '../runtime';
-import { gestureUi, getTracker } from '../gestureControl';
+import { gestureUi, getTracker, swipeDebug } from '../gestureControl';
 
 /**
  * Small debug view of what the hand tracker sees: the camera picture (mirrored like a selfie), hand dots, and live counters.
@@ -31,7 +31,7 @@ export function GesturePreview() {
       if (hand) { ctx.fillStyle = '#35e0a1'; for (const p of hand) { ctx.beginPath(); ctx.arc(p.x * w, p.y * h, 3, 0, 7); ctx.fill(); } }
       ctx.restore();
       const s = t.stats;
-      setText(`${s.delegate} ${s.videoSize} frames ${s.frames} hand ${hand ? 'YES' : 'no'} (${s.handFrames}) err ${s.errors}${s.lastError ? ' ' + s.lastError : ''}`);
+      setText(`${s.delegate} ${s.videoSize} frames ${s.frames} hand ${hand ? 'YES' : 'no'} (${s.handFrames}) swipes ${swipeDebug.fired} move ${swipeDebug.dx.toFixed(2)} peak ${swipeDebug.maxAbsDx.toFixed(2)} (need 0.18) err ${s.errors}${s.lastError ? ' ' + s.lastError : ''}`);
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);

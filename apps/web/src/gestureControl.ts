@@ -2,7 +2,7 @@ import { createStore } from '@nexus/core';
 import { SwipeDetector } from '@nexus/gestures';
 import { HandTracker, type TrackerStatus } from '@nexus/tracking';
 import { registerCommandSource, type BrowserCommand, type CommandSource } from './commands';
-import { settings } from './runtime';
+import { browser, settings } from './runtime';
 import { toast } from './toast';
 
 /**
@@ -30,6 +30,8 @@ export const gestureUi = createStore<GestureUiState, A>(
 );
 
 let tracker: HandTracker | null = null;
+/** Live swipe numbers for the debug preview (not in a store: it changes every frame). */
+export const swipeDebug = { dx: 0, maxAbsDx: 0, fired: 0 };
 /** For the debug preview. */
 export const getTracker = () => tracker;
 let unregister: (() => void) | null = null;
@@ -53,9 +55,14 @@ const handSwipeSource: CommandSource = {
       let x = 0; let y = 0;
       for (const i of PALM) { x += hand[i]!.x; y += hand[i]!.y; }
       const dir = detector.push(x / PALM.length, y / PALM.length, f.t);
+      swipeDebug.dx = detector.debugDx;
+      swipeDebug.maxAbsDx = Math.max(swipeDebug.maxAbsDx * 0.97, Math.abs(detector.debugDx));
       if (!dir) return;
+      swipeDebug.fired++;
+      if (browser.getState().tabs.length < 2) { toast('Swipe detected, but you only have one tab. Open a second tab first.', 'info', 2500); return; }
       const cmd: BrowserCommand = { type: dir === NEXT_TAB_IMAGE_DIRECTION ? 'nextTab' : 'previousTab' };
-      run(cmd);
+      const r = run(cmd);
+      toast(cmd.type === 'nextTab' ? 'Swipe: next tab' : 'Swipe: previous tab', r.ok ? 'success' : 'error', 1200);
       gestureUi.dispatch({ lastGesture: cmd.type === 'nextTab' ? 'Swipe right: next tab' : 'Swipe left: previous tab' });
     });
     void t.start();

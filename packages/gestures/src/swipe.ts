@@ -19,7 +19,7 @@ export interface SwipeOptions {
 }
 
 export const DEFAULT_SWIPE_OPTIONS: SwipeOptions = {
-  windowMs: 450, minTravel: 0.25, minHorizontalRatio: 2, cooldownMs: 900, maxGapMs: 250,
+  windowMs: 600, minTravel: 0.18, minHorizontalRatio: 1.5, cooldownMs: 900, maxGapMs: 400,
 };
 
 interface Sample { x: number; y: number; t: number }
@@ -28,10 +28,12 @@ export class SwipeDetector {
   private samples: Sample[] = [];
   private lastFire = -Infinity;
   private readonly o: SwipeOptions;
+  /** For on-screen debugging: the sideways travel (fraction of image width) seen in the current window. */
+  debugDx = 0;
   constructor(options: Partial<SwipeOptions> = {}) { this.o = { ...DEFAULT_SWIPE_OPTIONS, ...options }; }
 
   /** Call when no hand is visible. */
-  clear() { this.samples = []; }
+  clear() { this.samples = []; this.debugDx = 0; }
 
   /**
    * Returns the direction in IMAGE space: 'left' means x decreased (hand moved toward the left edge of the image).
@@ -47,6 +49,7 @@ export class SwipeDetector {
 
     const first = this.samples[0]!;
     const dx = x - first.x;
+    this.debugDx = dx;
     const dy = y - first.y;
     if (Math.abs(dx) < this.o.minTravel) return null;
     if (Math.abs(dx) < Math.abs(dy) * this.o.minHorizontalRatio) return null;
@@ -55,7 +58,7 @@ export class SwipeDetector {
     for (let i = 1; i < this.samples.length; i++) {
       if (Math.sign(this.samples[i]!.x - this.samples[i - 1]!.x) === -Math.sign(dx)) wrong++;
     }
-    if (wrong > (this.samples.length - 1) * 0.25) return null;
+    if (wrong > (this.samples.length - 1) * 0.35) return null;
 
     this.lastFire = t;
     this.samples = [];
