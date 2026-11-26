@@ -1,0 +1,19 @@
+{
+  "name": "@nexus/web",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@nexus/browser": "*",
+    "@nexus/core": "*",
+    "@nexus/shared": "*",
+    "@nexus/ui": "*",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

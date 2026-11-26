@@ -1,0 +1,32 @@
+{
+  "name": "nexus-browser",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @nexus/web",
+    "build": "npm run build -w @nexus/web",
+    "preview": "npm run preview -w @nexus/web",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p apps/web/tsconfig.json && tsc --noEmit -p tests/tsconfig.json",
+    "test:e2e": "node tests/e2e/smoke.mjs && node tests/e2e/phase2.mjs",
+    "check": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.2",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "playwright": "^1.65.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.2"
+  }
+}
